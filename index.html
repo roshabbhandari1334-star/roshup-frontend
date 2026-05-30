@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="RoshUP — Instant peer-to-peer communication. No sign-up. Get your unique ID and connect with anyone in real time." />
+  <meta name="theme-color" content="#06090f" />
+  <meta property="og:title" content="RoshUP — P2P Communication" />
+  <meta property="og:description" content="Instant P2P chat, voice, and video. No accounts. No friction." />
+  <meta property="og:type" content="website" />
+  <title>RoshUP — Instant P2P Communication</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%2300e5ff'/><text x='16' y='22' text-anchor='middle' font-size='18' font-family='monospace' font-weight='bold' fill='%23000'>R</text></svg>" />
+</head>
+<body>
+
+  <!-- ════════════════════════════════════════
+       TOAST CONTAINER
+       ════════════════════════════════════════ -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- ════════════════════════════════════════
+       INCOMING REQUEST MODAL
+       ════════════════════════════════════════ -->
+  <div id="incoming-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card">
+      <div class="modal-icon">📡</div>
+      <h2 class="modal-title" id="modal-title">Incoming Connection</h2>
+      <p class="modal-subtitle">Someone wants to connect with you</p>
+      <div id="caller-id-display" class="modal-caller-id">—</div>
+      <div class="modal-actions">
+        <button id="decline-btn" class="btn btn-danger">✕ &nbsp;Decline</button>
+        <button id="accept-btn" class="btn btn-success">✓ &nbsp;Accept</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       MAIN APP
+       ════════════════════════════════════════ -->
+  <div class="app-container">
+
+    <!-- ── Header ───────────────────────────── -->
+    <header class="header">
+      <div class="logo">
+        <div class="logo-icon" aria-hidden="true">⚡</div>
+        <div>
+          <div class="logo-text">RoshUP</div>
+          <div class="logo-tagline">Peer-to-peer · No accounts</div>
+        </div>
+      </div>
+      <div class="server-status" title="Signaling server connection status">
+        <span id="server-dot" class="server-dot" aria-hidden="true"></span>
+        <span id="server-status-text">Connecting…</span>
+      </div>
+    </header>
+
+    <!-- ── ID Hero Card ──────────────────────── -->
+    <section id="id-hero-card" class="id-hero-card" aria-label="Your unique ID">
+      <p class="id-label">Your Unique ID</p>
+
+      <div
+        id="my-id-display"
+        class="id-display"
+        title="Your unique RoshUP ID"
+        aria-label="Your ID"
+        tabindex="0"
+      >——————/—————</div>
+
+      <div class="id-actions">
+        <button id="copy-btn" class="copy-btn" aria-label="Copy your ID to clipboard" title="Copy ID">
+          <span class="copy-icon">📋</span>
+          <span class="copy-text">Copy ID</span>
+        </button>
+
+        <div id="status-badge" class="status-badge waiting" role="status" aria-live="polite">
+          <span id="status-dot" class="status-dot" aria-hidden="true"></span>
+          <span id="status-text">Waiting</span>
+        </div>
+      </div>
+
+      <div id="peer-info" class="peer-info">
+        Connected to &nbsp;<span id="peer-id-display" class="peer-id-display"></span>
+      </div>
+    </section>
+
+    <!-- ── Connect Panel ─────────────────────── -->
+    <section id="connect-panel" class="connect-panel" aria-label="Connect to a peer">
+      <p class="section-label">Connect to someone</p>
+      <div class="connect-row">
+        <input
+          id="target-id-input"
+          class="id-input"
+          type="text"
+          inputmode="numeric"
+          placeholder="Enter ID — e.g. 12345678/67890"
+          maxlength="14"
+          aria-label="Enter the ID of the person you want to connect to"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button id="connect-btn" class="btn btn-primary" aria-label="Send connection request">
+          Connect
+        </button>
+      </div>
+    </section>
+
+    <!-- ── Disconnect Row ────────────────────── -->
+    <div id="disconnect-row" class="disconnect-row">
+      <button id="disconnect-btn" class="btn btn-danger" aria-label="Disconnect from current peer">
+        🔌 &nbsp;Disconnect
+      </button>
+    </div>
+
+    <!-- ── Communication Panel ───────────────── -->
+    <section id="comm-panel" class="comm-panel" aria-label="Communication panel">
+
+      <!-- Tab Bar -->
+      <div class="tab-bar" role="tablist" aria-label="Communication modes">
+        <button class="tab-btn active" data-tab="chat" role="tab" aria-selected="true" id="tab-btn-chat" aria-controls="tab-chat">
+          <span class="tab-icon" aria-hidden="true">💬</span> Chat
+        </button>
+        <button class="tab-btn" data-tab="voice" role="tab" aria-selected="false" id="tab-btn-voice" aria-controls="tab-voice">
+          <span class="tab-icon" aria-hidden="true">🎙️</span> Voice
+        </button>
+        <button class="tab-btn" data-tab="video" role="tab" aria-selected="false" id="tab-btn-video" aria-controls="tab-video">
+          <span class="tab-icon" aria-hidden="true">📹</span> Video
+        </button>
+      </div>
+
+      <!-- ── CHAT TAB ──────────────────────── -->
+      <div id="tab-chat" class="tab-content active" role="tabpanel" aria-labelledby="tab-btn-chat">
+        <div id="chat-messages" class="chat-messages" aria-live="polite" aria-label="Chat messages">
+          <div class="chat-empty">
+            <div class="chat-empty-icon" aria-hidden="true">💬</div>
+            <div class="chat-empty-text">Messages appear here once connected</div>
+          </div>
+        </div>
+
+        <div class="chat-input-row">
+          <textarea
+            id="chat-input"
+            class="chat-input"
+            placeholder="Type a message…"
+            rows="1"
+            aria-label="Type a message"
+            maxlength="4000"
+          ></textarea>
+          <button id="send-btn" class="send-btn" aria-label="Send message" title="Send (Enter)">
+            ➤
+          </button>
+        </div>
+      </div>
+
+      <!-- ── VOICE TAB ─────────────────────── -->
+      <div id="tab-voice" class="tab-content voice-tab" role="tabpanel" aria-labelledby="tab-btn-voice">
+
+        <div class="call-status-display">
+          <div id="call-avatar" class="call-avatar" aria-hidden="true">🎙️</div>
+          <div id="voice-call-peer-name" class="call-peer-name">—</div>
+          <div id="call-timer" class="call-timer"></div>
+        </div>
+
+        <div class="waveform-container">
+          <canvas id="waveform-canvas" aria-label="Audio waveform visualizer" role="img"></canvas>
+        </div>
+
+        <div class="voice-controls">
+          <button
+            id="mute-btn-voice"
+            class="control-btn"
+            aria-label="Toggle mute"
+            title="Mute / Unmute"
+            disabled
+          >🎙️</button>
+
+          <button
+            id="start-call-btn"
+            class="call-btn-large start-call"
+            aria-label="Start voice call"
+            title="Start voice call"
+          >📞</button>
+
+          <button
+            id="end-call-btn"
+            class="call-btn-large end-call"
+            aria-label="End voice call"
+            title="End call"
+            style="display:none"
+          >📵</button>
+        </div>
+
+      </div>
+
+      <!-- ── VIDEO TAB ─────────────────────── -->
+      <div id="tab-video" class="tab-content video-tab" role="tabpanel" aria-labelledby="tab-btn-video">
+        <div class="video-container">
+
+          <div id="video-placeholder" class="video-placeholder">
+            <span class="video-placeholder-icon" aria-hidden="true">📹</span>
+            <span>Start video call to see feeds</span>
+          </div>
+
+          <video
+            id="remote-video"
+            autoplay
+            playsinline
+            aria-label="Remote video feed"
+          ></video>
+
+          <video
+            id="local-video"
+            autoplay
+            playsinline
+            muted
+            aria-label="Your local video feed"
+          ></video>
+
+          <div class="video-controls">
+            <button
+              id="mute-btn-video"
+              class="control-btn"
+              aria-label="Toggle microphone"
+              title="Mute / Unmute"
+              disabled
+            >🎙️</button>
+
+            <button
+              id="start-video-btn"
+              class="call-btn-large start-call"
+              aria-label="Start video call"
+              title="Start video call"
+            >📹</button>
+
+            <button
+              id="end-video-btn"
+              class="call-btn-large end-call"
+              aria-label="End video call"
+              title="End video call"
+              style="display:none"
+            >📵</button>
+
+            <button
+              id="cam-toggle-btn"
+              class="control-btn"
+              aria-label="Toggle camera"
+              title="Toggle camera on/off"
+              disabled
+            >📹</button>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div><!-- /app-container -->
+
+  <!-- Socket.io client (loaded from backend) -->
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" crossorigin="anonymous"></script>
+  <script src="app.js"></script>
+</body>
+</html>
