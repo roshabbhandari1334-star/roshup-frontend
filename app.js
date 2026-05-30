@@ -9,7 +9,7 @@
 // ⚠️  After deploying backend, replace this URL with your Railway/Render URL
 const BACKEND_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:3001'
-  : 'https://roshup-backend.up.railway.app'; // <-- UPDATE THIS after Railway deploy
+  : 'https://roshup-backend.onrender.com'; // <-- UPDATE THIS after Railway deploy
 
 const STUN_CONFIG = {
   iceServers: [
